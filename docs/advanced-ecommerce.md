@@ -1,5 +1,7 @@
 # Phase 5: advanced e-commerce APIs
 
+Use the [current fresh-clone installation guide](../README.md#fresh-clone-installation) and [isolated testing instructions](../README.md#isolated-testing-and-database-safety). This document describes the implemented contracts and retains Phase 5 implementation history; final dependency-security and Pint maintenance are now complete.
+
 Phase 5 adds product reviews, customer wishlists, admin category/discount/order management, transactional cancellation with mock refunds, and sales reporting. Existing catalog, pricing, authentication, cart, checkout and legacy `/discount` contracts remain available. No real gateway, frontend or dependency updates are included.
 
 ## Authentication and authorization
@@ -215,9 +217,9 @@ php artisan route:list --path=api
 
 `advanced-http-smoke.php` starts a temporary loopback PHP server with the verified testing environment, exercises actual TCP requests, and stops its own process. It tests guest/customer/admin access, reviewer privacy, wishlist isolation/duplicates, category restrictions, discount administration/pricing, checkout, declined-refund rollback, repeat cancellation, inventory restoration, reporting and the legacy calculator. Tokens are never printed or retained. Do not run HTTP smoke and PHPUnit concurrently.
 
-Run Pint on new/modified PHP files only, then `--test` those same files. Composer/NPM dependencies and lockfiles remain unchanged; previously recorded advisories in [customer-cart.md](customer-cart.md) remain deferred to final maintenance.
+Release verification uses the full repository Pint check: `php vendor/bin/pint --test`. The earlier six legacy formatting violations were resolved separately without business-logic changes. Final dependency maintenance updated only the seven approved Composer package versions and added a reproducible NPM lockfile; current Composer and NPM audits, including development dependencies, report zero vulnerabilities. The [Phase 3 audit table](customer-cart.md#verification-and-limits) is historical. See [current patched versions](../README.md#dependency-security-status); use `composer install` and `npm.cmd ci --ignore-scripts` for locked installation.
 
-Verified Phase 5 results: **199 tests passed, 0 failed, 1,195 assertions**, including all 173 earlier regression tests and two genuine cancellation contention tests. **35 real HTTP checks passed**. Pint passed on all 52 new/modified PHP files. Three additive migrations ran successfully in each database; neither has pending migrations. All 11 existing development-table fingerprints matched before and after migration, including 40 products, four categories, five discounts, 67 discount assignments, three users and two carts. HTTP fixtures/tokens were removed from testing; development sample records were unchanged.
+Historical Phase 5 verification: **199 tests passed, 0 failed, 1,195 assertions**, including all 173 earlier regression tests and two genuine cancellation contention tests; **35 real HTTP checks passed**. At that stage Pint passed on the 52 new/modified PHP files. Three additive migrations ran successfully in each database. All 11 existing development-table fingerprints matched before and after that migration, including 40 products, four categories, five discounts, 67 discount assignments, three users and two carts. HTTP fixtures/tokens were removed from testing. Subsequent release-readiness verification also passed all 199 tests and the full repository Pint check, with zero reported Composer/NPM vulnerabilities. Migration status and audits should be checked on the actual installation rather than assumed from this historical result.
 
 ## Postman walkthrough
 

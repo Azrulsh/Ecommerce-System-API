@@ -2,7 +2,9 @@
 
 ## Installation and database safety
 
-Laravel 12.68.0 / PHP 8.4.27, with Sanctum 4.3.3 installed using Laravel's supported command:
+For the current fresh-clone workflow, use the [README installation guide](../README.md#fresh-clone-installation) and [isolated testing setup](../README.md#isolated-testing-and-database-safety). Sanctum and all application routes/migrations are already committed; do not rerun an API installer or dependency update to install this release. The current lockfile contains Laravel 12.71.0 and Sanctum 4.3.3, verified with PHP 8.4.27; the declared PHP requirement remains `^8.2` on a 64-bit runtime.
+
+Historical Phase 3 implementation context: Sanctum 4.3.3 was originally installed while Laravel was 12.68.0, using Laravel's supported command:
 
 Reference: [Laravel 12 Sanctum documentation](https://laravel.com/docs/12.x/sanctum).
 
@@ -10,9 +12,9 @@ Reference: [Laravel 12 Sanctum documentation](https://laravel.com/docs/12.x/sanc
 php artisan install:api --without-migration-prompt --no-interaction
 ```
 
-The existing API routes were preserved: the installer reports that `routes/api.php` already exists and does not overwrite it without `--force`. Do not use `--force` here. Sanctum's provider, configuration and standard token migration are installed; User uses HasApiTokens. Existing routes were extended manually. This is a Bearer-token-only backend: no SPA cookie/session middleware is enabled and Sanctum's session guard list is empty. Tokens expire after 30 days; logout revokes only the current token. Stored tokens are hashed; plaintext tokens are returned only when issued.
+That historical installation preserved the existing API routes; the installer did not overwrite `routes/api.php` without `--force`. This command is not part of fresh installation. Sanctum's provider, configuration and standard token migration are installed; User uses HasApiTokens. This is a Bearer-token-only backend: no SPA cookie/session middleware is enabled and Sanctum's session guard list is empty. Tokens expire after 30 days; logout revokes only the current token. Stored tokens are hashed; plaintext tokens are returned only when issued.
 
-Four ordinary pending migrations add `users.is_admin` and `users.is_loyalty_member` (both false by default), Sanctum's personal access tokens table, carts and cart items. There is one cart per user, one item per cart/product, positive quantities, and foreign keys. User deletion cascades to carts/items; referenced products cannot be hard-deleted. Soft-deleted products remain available for cart diagnostics. No persisted cart monetary totals or inventory reservations are added.
+Phase 3 introduced four migrations for `users.is_admin` and `users.is_loyalty_member` (both false by default), Sanctum's personal access tokens table, carts and cart items. These are part of the complete migration set, not four pending migrations on an already migrated installation. There is one cart per user, one item per cart/product, positive quantities, and foreign keys. User deletion cascades to carts/items; referenced products cannot be hard-deleted. Soft-deleted products remain available for cart diagnostics. No persisted cart monetary totals or inventory reservations are added.
 
 Development is local MySQL `ecommerce-api`; PHPUnit uses `ecommerce_api_testing`. Existing credential files remain ignored and unchanged. Before applying migrations, verify both configured targets and actual `SELECT DATABASE()` values, inspect pending migrations, and review SQL. Use only ordinary pending migrations, never resets or fresh migrations on development.
 
@@ -74,7 +76,7 @@ app(\App\Services\UserPrivilegeService::class)->assign($user, false, true);
 
 This example grants loyalty only. The arguments explicitly set admin and loyalty flags, respectively; use `true, false` for an explicitly authorized admin. The service is an internal mechanism, not an authorization boundary. Never expose it as a public route.
 
-Product POST, PUT, PATCH, and DELETE require `auth:sanctum` plus ProductPolicy authorization in every environment: guests get 401, customers get 403, admins may proceed to validation. The temporary environment-only middleware was removed. Public catalog/category reads remain public. There are no category or discount administration APIs to extend.
+Product POST, PUT, PATCH, and DELETE require `auth:sanctum` plus ProductPolicy authorization in every environment: guests get 401, customers get 403, admins may proceed to validation. The temporary environment-only middleware was removed. Public catalog/category reads remain public. [Admin category and discount APIs](advanced-ecommerce.md#endpoints) now exist under `/api/admin/categories` and `/api/admin/discounts`, protected by Sanctum and admin authorization.
 
 Existing product price/discount routes and POST `/api/discounts/calculate` accept optional Bearer authentication. No token means guest pricing; invalid optional tokens are treated as guests. Valid members receive eligible loyalty discounts based on the stored user record. Client loyalty flags are still prohibited on the calculator and ignored for GET pricing. Loyalty still subtracts 85%, with best-price selection, UTC validity windows, ID tie-breaking and no stacking.
 
@@ -155,11 +157,11 @@ The first is HTTP 401; the second 409. Validation responses use the existing `me
 
 ## Verification and limits
 
-Run PHPUnit only against the dedicated testing database as above. Coverage includes real token issuance/revocation, login throttling, privilege escalation, admin policies, guest JSON errors, membership/revocation, exact cart calculations and recalculation, unavailable products, quantity/stock checks, ownership, and previous phase regressions. No checkout, order management, payment, password reset or email-verification workflow is added in this phase.
+Run PHPUnit only against the dedicated testing database as above. Coverage includes real token issuance/revocation, login throttling, privilege escalation, admin policies, guest JSON errors, membership/revocation, exact cart calculations and recalculation, unavailable products, quantity/stock checks, ownership, and previous phase regressions. Later phases add [checkout and order history](checkout-orders.md) and [admin workflows with mock refunds](advanced-ecommerce.md). Payments/refunds remain simulations, and password reset/email verification remain unimplemented.
 
-The dependency installation added only Sanctum; unrelated locked versions were preserved. Composer audit reported 13 advisories in seven existing dependencies (Laravel framework, CommonMark, and Symfony components). Sanctum was not listed. Address these in a separate dependency-maintenance change before production deployment; Phase 3 does not silently upgrade unrelated packages.
+Historical Phase 3 audit context: its dependency installation added only Sanctum; unrelated locked versions were preserved at that time. Composer audit reported 13 advisories in seven existing dependencies (Laravel framework, CommonMark, and Symfony components). Sanctum was not listed. The subsequent final dependency-maintenance change resolved these advisories; see the [current security status and patched versions](../README.md#dependency-security-status).
 
-Recorded from the 8 November 2026 audit for final maintenance; these are the observed results, not a new audit or dependency update:
+Recorded from the initial 8 November 2026 audit, before remediation. This table preserves historical observations, not the current vulnerability status:
 
 | Package | Reported advisories |
 | --- | ---: |
@@ -171,7 +173,7 @@ Recorded from the 8 November 2026 audit for final maintenance; these are the obs
 | `symfony/routing` | 1 |
 | `symfony/yaml` | 2 |
 
-Re-audit and review compatible fixes in the final maintenance phase. No Composer or NPM security updates were performed during Phase 3 finalization.
+Final maintenance is complete: current Composer and NPM audits, including development dependencies, report zero vulnerabilities. The NPM lockfile is committed and reproducible installation uses `npm.cmd ci --ignore-scripts` on PowerShell. Full-repository Pint checks pass after the separate legacy formatting cleanup. Rerun audits for each release; no advisories are suppressed.
 
 ## File inventory
 

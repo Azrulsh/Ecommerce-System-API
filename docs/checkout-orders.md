@@ -1,5 +1,7 @@
 # Phase 4: Checkout and order management
 
+For current installation, prerequisites, environment configuration and database setup, follow the [fresh-clone guide](../README.md#fresh-clone-installation). The phase-specific schema and file inventories below describe implementation history; apply only migrations that are actually pending on your verified target. See the [current dependency security status](../README.md#dependency-security-status) for completed maintenance.
+
 ## Transaction flow and data safety
 
 Checkout is authenticated through Sanctum and uses the same current product pricing, integer-cent arithmetic, authenticated loyalty eligibility, UTC validity windows, half-up savings rounding and best-discount/no-stacking rules as earlier phases. Client totals never determine persisted financial values.
@@ -105,7 +107,7 @@ GET the cart again: quantities remain unchanged; stock, order and payment record
 | GET | `{{base_url}}/api/orders/{id}` | Own order resource |
 | GET | `{{base_url}}/api/orders/{id}/payment` | Own payment resource |
 
-History uses the usual `data`, `links`, and `meta` pagination shape; page is positive, page size is 1–100 (default 15). Empty histories return an empty data array. Details use the resource shown above. The payment endpoint wraps the payment object shown above in `data`. Items and payments are eager loaded for history/details. The order policy returns 404 for another customer's orders/payments, including requests by an admin; Phase 5 admin order APIs are not added here. Guest access returns 401.
+History uses the usual `data`, `links`, and `meta` pagination shape; page is positive, page size is 1–100 (default 15). Empty histories return an empty data array. Details use the resource shown above. The payment endpoint wraps the payment object shown above in `data`. Items, payments and refund details are eager loaded for history/details. The order policy returns 404 for another customer's orders/payments, including requests by an admin using customer routes; admins use the separate [admin order APIs](advanced-ecommerce.md#order-management-cancellation-and-refunds). Guest access returns 401.
 
 ## Status workflow and cancellation
 
@@ -156,7 +158,7 @@ HTTP smoke verification uses a temporary server configured exclusively for `ecom
 
 Phase 5 extends these APIs with [admin order management, cancellation and mock refunds](advanced-ecommerce.md). Customer order/payment responses now also include cancellation tracking and a refund resource when loaded. Original checkout prices remain immutable snapshots.
 
-Known limits: mock payments/refunds only; no real gateway, shipping or tax calculation; DECIMAL limits are enforced rather than silently truncating large cart totals. Earlier recorded dependency advisories remain deferred to final maintenance; no Composer/NPM security updates were performed.
+Known limits: mock payments/refunds only; no real gateway, shipping or tax calculation; DECIMAL limits are enforced rather than silently truncating large cart totals. Cancellation is limited to placed/processing orders; missing hard-deleted inventory references or stock overflow require manual resolution with HTTP 409 and no partial changes. No partial refunds or asynchronous gateway reconciliation are implemented. Earlier dependency advisories were resolved in final maintenance; current Composer and NPM audits are clean. See [patched versions and verification commands](../README.md#dependency-security-status).
 
 ## Files
 
