@@ -11,6 +11,6 @@ class PaymentResource extends JsonResource
     {
         return ['id' => $this->id, 'order_id' => $this->order_id, 'reference' => $this->reference,
             'amount' => $this->amount, 'status' => $this->status, 'paid_at' => $this->paid_at?->toISOString(),
-            'created_at' => $this->created_at?->toISOString()];
+            'created_at' => $this->created_at?->toISOString(), 'refund' => new RefundResource($this->whenLoaded('refund'))];
     }
 }

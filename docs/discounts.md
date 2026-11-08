@@ -70,7 +70,7 @@ The original `GET /discount` controller and fixed, percentage, and loyalty strat
 
 ## Internal administration
 
-No publicly writable discount administration endpoints exist. `DiscountAdministrationService` provides `create`, `update`, `deactivate`, and additive/idempotent `assignProducts`. It validates input and uses transactions and row locks for updates/assignments. It never modifies catalog prices, stock, or category records. Future admin controllers must authorize callers before invoking it; the service itself is not an authorization boundary. Direct Eloquent writes bypass its validation and should not be used for administration.
+Phase 5 exposes [admin-authorized discount management](advanced-ecommerce.md) under `/api/admin/discounts`; there are no unauthenticated discount administration endpoints. `DiscountAdministrationService` provides `create`, `update`, `deactivate`, additive/idempotent `assignProducts`, and explicit `removeProducts`. It validates input and uses transactions and row locks for updates/assignments. It never modifies catalog prices, stock, or category records. Admin controllers authorize callers before invoking it; the service itself is not an authorization boundary. Direct Eloquent writes bypass its validation and should not be used for administration.
 
 Example for trusted application code or an explicitly authorized local Tinker session (not an HTTP request):
 

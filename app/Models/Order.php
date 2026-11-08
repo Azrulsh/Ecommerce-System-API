@@ -14,7 +14,7 @@ class Order extends Model
 
     protected function casts(): array
     {
-        return ['status' => OrderStatus::class, 'subtotal' => 'decimal:2', 'discount_total' => 'decimal:2', 'grand_total' => 'decimal:2'];
+        return ['status' => OrderStatus::class, 'subtotal' => 'decimal:2', 'discount_total' => 'decimal:2', 'grand_total' => 'decimal:2', 'stock_restored_at' => 'immutable_datetime'];
     }
 
     public function user(): BelongsTo

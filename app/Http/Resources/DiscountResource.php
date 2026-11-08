@@ -13,6 +13,7 @@ class DiscountResource extends JsonResource
             'value' => $this->value, 'is_active' => $this->is_active,
             'starts_at' => $this->starts_at?->utc()->toISOString(),
             'expires_at' => $this->expires_at?->utc()->toISOString(),
-            'requires_loyalty' => $this->requires_loyalty];
+            'requires_loyalty' => $this->requires_loyalty,
+            'product_ids' => $this->whenLoaded('products', fn () => $this->products->modelKeys())];
     }
 }

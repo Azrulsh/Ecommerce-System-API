@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-// Trusted application service. Future admin controllers must authorize before invoking it.
+// Trusted application service. HTTP callers must authorize before invoking it.
 class DiscountAdministrationService
 {
     public function create(array $attributes): Discount
     {
-        return Discount::create($this->validated($attributes));
+        return Discount::create($this->validated($attributes))->refresh();
     }
 
     public function update(Discount $discount, array $attributes): Discount
@@ -65,9 +65,21 @@ class DiscountAdministrationService
         });
     }
 
-    private function validated(array $attributes): array
+    public function removeProducts(Discount $discount, array $productIds): void
     {
-        $data = Validator::make($attributes, [
+        $ids = Validator::make(['product_ids' => $productIds], [
+            'product_ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'product_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ])->validate()['product_ids'];
+        DB::transaction(function () use ($discount, $ids) {
+            $locked = Discount::query()->lockForUpdate()->findOrFail($discount->id);
+            $locked->products()->detach($ids);
+        });
+    }
+
+    public function validationRules(array $attributes = []): array
+    {
+        return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in(['fixed', 'percentage', 'loyalty'])],
             'value' => ['required', 'numeric', 'decimal:0,2', 'regex:/^\d+(?:\.\d{1,2})?$/D', 'min:0', 'max:9999999999.99'],
@@ -75,7 +87,12 @@ class DiscountAdministrationService
             'starts_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', ...(! empty($attributes['starts_at']) ? ['after:starts_at'] : [])],
             'requires_loyalty' => ['sometimes', 'boolean'],
-        ])->validate();
+        ];
+    }
+
+    private function validated(array $attributes): array
+    {
+        $data = Validator::make($attributes, $this->validationRules($attributes))->validate();
 
         if (($data['type'] === 'percentage' && Money::minor((string) $data['value']) > 10000)
             || ($data['type'] === 'loyalty' && Money::minor((string) $data['value']) !== 8500)) {

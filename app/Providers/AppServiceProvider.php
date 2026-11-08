@@ -23,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('registration', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(300)->by($request->ip()));
+        RateLimiter::for('admin', fn (Request $request) => Limit::perMinute(60)->by($request->user()->id));
+        RateLimiter::for('reviews', fn (Request $request) => Limit::perMinute(10)->by($request->user()->id));
+        RateLimiter::for('wishlist', fn (Request $request) => Limit::perMinute(30)->by($request->user()->id));
         RateLimiter::for('login', fn (Request $request) => [
             Limit::perMinute(30)->by('ip:'.$request->ip()),
             Limit::perMinute(5)->by('identity:'.hash('sha256', strtolower(is_string($request->input('email')) ? trim($request->input('email')) : '').'|'.$request->ip())),

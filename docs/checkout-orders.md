@@ -107,7 +107,7 @@ GET the cart again: quantities remain unchanged; stock, order and payment record
 
 History uses the usual `data`, `links`, and `meta` pagination shape; page is positive, page size is 1–100 (default 15). Empty histories return an empty data array. Details use the resource shown above. The payment endpoint wraps the payment object shown above in `data`. Items and payments are eager loaded for history/details. The order policy returns 404 for another customer's orders/payments, including requests by an admin; Phase 5 admin order APIs are not added here. Guest access returns 401.
 
-## Status workflow and future cancellation
+## Status workflow and cancellation
 
 New successful orders are `placed`. The OrderStatus enum defines this transition blueprint:
 
@@ -117,7 +117,7 @@ placed -> cancelled
 processing -> cancelled
 ```
 
-Completed and cancelled are terminal. Shipped orders cannot be cancelled through this workflow. There are no public or internal status-mutation/cancellation APIs in Phase 4, so no stock restoration can run prematurely or twice. Phase 5 administration must authorize transitions and execute cancellation under an order row lock, restoring stock only for eligible placed/processing orders, with an atomic persisted restoration marker/ledger and a no-op repeat cancellation. Payment refund handling must be designed alongside that workflow. This phase defines the states/transitions without implementing Phase 5 administration.
+Completed and cancelled are terminal. Shipped orders cannot be cancelled through this workflow. Phase 4 defined the states/transitions; Phase 5 adds [admin-only status management and cancellation](advanced-ecommerce.md). Cancellation locks the order and inventory, restores stock only for eligible placed/processing orders, and persists the restoration marker and mock refund atomically. Repeated cancellation is a no-op. Customer order endpoints cannot mutate status or refund payments.
 
 ## Errors
 
@@ -154,7 +154,9 @@ The contention observer is verified on the local XAMPP InnoDB server and require
 
 HTTP smoke verification uses a temporary server configured exclusively for `ecommerce_api_testing`, synthetic users/products/discounts, and scoped cleanup. It verifies checkout/replay, cart clearing, inventory, paid-payment reads, ownership, authenticated loyalty and complete decline rollback without changing any existing development rows or retaining test tokens.
 
-Known limits: mock payments only; no real gateway, shipping, tax, refund or cancellation execution; customer history only; DECIMAL limits are enforced rather than silently truncating large cart totals. Earlier recorded dependency advisories remain deferred to final maintenance; no Composer/NPM security updates were performed.
+Phase 5 extends these APIs with [admin order management, cancellation and mock refunds](advanced-ecommerce.md). Customer order/payment responses now also include cancellation tracking and a refund resource when loaded. Original checkout prices remain immutable snapshots.
+
+Known limits: mock payments/refunds only; no real gateway, shipping or tax calculation; DECIMAL limits are enforced rather than silently truncating large cart totals. Earlier recorded dependency advisories remain deferred to final maintenance; no Composer/NPM security updates were performed.
 
 ## Files
 

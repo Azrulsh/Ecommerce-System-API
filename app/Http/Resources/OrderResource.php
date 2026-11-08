@@ -13,6 +13,7 @@ class OrderResource extends JsonResource
             'currency' => $this->currency, 'subtotal' => $this->subtotal, 'discount_total' => $this->discount_total,
             'grand_total' => $this->grand_total, 'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'payment' => new PaymentResource($this->whenLoaded('payment')),
+            'stock_restored_at' => $this->stock_restored_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(), 'updated_at' => $this->updated_at?->toISOString()];
     }
 }

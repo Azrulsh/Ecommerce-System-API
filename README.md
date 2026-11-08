@@ -1,6 +1,6 @@
 # E-commerce Discount System
 
-Laravel 12 backend with a product catalog API, discount integration, Sanctum customer authentication, shopping carts, transactional checkout, order history, mock payments, and the original discount calculator. See [discount documentation](docs/discounts.md), [customer authentication and cart documentation](docs/customer-cart.md), and [checkout and orders](docs/checkout-orders.md) for API contracts, Postman examples, authorization, and testing instructions.
+Laravel 12 backend with a product catalog API, discount integration, Sanctum customer authentication, shopping carts, transactional checkout, order history, mock payments/refunds, product reviews, wishlists, admin management, sales reporting, and the original discount calculator. See [discount documentation](docs/discounts.md), [customer authentication and cart documentation](docs/customer-cart.md), [checkout and orders](docs/checkout-orders.md), and [advanced e-commerce](docs/advanced-ecommerce.md) for API contracts, Postman examples, authorization, and testing instructions.
 
 Development sample data includes five promotions created by the dedicated `DiscountSampleSeeder`: Electronics Sale (10%), Fashion Promotion (20%), Gaming Voucher (RM50), Home Living Deal (RM30), and VIP Loyalty Discount (85%, excluded from public pricing). See [seeded pricing examples](docs/discounts.md#sample-discounts-and-http-examples) for verified requests and responses. Run only the intended seeder after verifying its database target; existing named promotions and their assignments are preserved on reruns.
 
@@ -42,7 +42,7 @@ All API responses are JSON, including errors without an Accept header. Public re
 | GET | `/api/categories` | Categories, 200 |
 | GET | `/discount` | Unchanged legacy discount calculation |
 
-Product writes require a valid Sanctum Bearer token and a server-managed admin role in every environment. Guests receive 401 and regular customers receive 403. Product reads remain public. Admins can update inactive products. No category or discount administration HTTP routes are exposed.
+Product writes require a valid Sanctum Bearer token and a server-managed admin role in every environment. Guests receive 401 and regular customers receive 403. Product reads remain public. Admins can update inactive products. Phase 5 adds admin category/discount/order management and sales reports under `/api/admin`, plus customer reviews and wishlists; see the [complete endpoint list and examples](docs/advanced-ecommerce.md).
 
 List query parameters:
 
@@ -63,7 +63,7 @@ GET /api/products?search=laptop&category=electronics&min_price=100&max_price=300
 
 ## Create and update examples
 
-Use an existing category ID. Phase 1 has no category write endpoint or automatic development seed data.
+Use an existing category ID from `/api/categories`, or create a category through the admin API before creating the product.
 
 ```http
 POST /api/products

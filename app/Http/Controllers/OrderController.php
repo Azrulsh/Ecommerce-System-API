@@ -12,17 +12,17 @@ class OrderController extends Controller
 {
     public function index(IndexOrderRequest $request): AnonymousResourceCollection
     {
-        return OrderResource::collection($request->user()->orders()->with('items', 'payment')
+        return OrderResource::collection($request->user()->orders()->with('items', 'payment.refund')
             ->orderByDesc('id')->paginate($request->validated('per_page', 15))->withQueryString());
     }
 
     public function show(Order $order): OrderResource
     {
-        return new OrderResource($order->load('items', 'payment'));
+        return new OrderResource($order->load('items', 'payment.refund'));
     }
 
     public function payment(Order $order): PaymentResource
     {
-        return new PaymentResource($order->payment()->firstOrFail());
+        return new PaymentResource($order->payment()->with('refund')->firstOrFail());
     }
 }
