@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductPriceController;
 use App\Http\Middleware\OptionalSanctumAuthentication;
@@ -19,6 +21,10 @@ Route::post('register', [AuthController::class, 'register'])->middleware('thrott
 Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('checkout', [CheckoutController::class, 'store']);
+    Route::get('orders', [OrderController::class, 'index']);
+    Route::get('orders/{order}', [OrderController::class, 'show'])->middleware('can:view,order');
+    Route::get('orders/{order}/payment', [OrderController::class, 'payment'])->middleware('can:view,order');
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('user', [AuthController::class, 'user']);
     Route::get('cart', [CartController::class, 'show']);

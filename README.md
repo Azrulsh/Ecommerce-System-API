@@ -1,6 +1,6 @@
 # E-commerce Discount System
 
-Laravel 12 backend with a product catalog API, discount integration, Sanctum customer authentication, shopping carts, and the original discount calculator. Checkout is planned for Phase 4. See [discount documentation](docs/discounts.md) and [customer authentication and cart documentation](docs/customer-cart.md) for API contracts, Postman examples, authorization, and testing instructions.
+Laravel 12 backend with a product catalog API, discount integration, Sanctum customer authentication, shopping carts, transactional checkout, order history, mock payments, and the original discount calculator. See [discount documentation](docs/discounts.md), [customer authentication and cart documentation](docs/customer-cart.md), and [checkout and orders](docs/checkout-orders.md) for API contracts, Postman examples, authorization, and testing instructions.
 
 Development sample data includes five promotions created by the dedicated `DiscountSampleSeeder`: Electronics Sale (10%), Fashion Promotion (20%), Gaming Voucher (RM50), Home Living Deal (RM30), and VIP Loyalty Discount (85%, excluded from public pricing). See [seeded pricing examples](docs/discounts.md#sample-discounts-and-http-examples) for verified requests and responses. Run only the intended seeder after verifying its database target; existing named promotions and their assignments are preserved on reruns.
 
