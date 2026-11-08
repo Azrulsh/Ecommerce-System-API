@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,7 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return app()->environment(['local', 'testing']);
+        return $this->user()?->can('create', Product::class) ?? false;
     }
 
     public function rules(): array

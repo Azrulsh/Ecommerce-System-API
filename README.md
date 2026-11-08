@@ -1,6 +1,6 @@
 # E-commerce Discount System
 
-Laravel 12 backend with a product catalog API, product discount integration, and the original discount calculator. Authentication, cart, and checkout are planned for later phases. See [Phase 2 discount documentation](docs/discounts.md) for pricing endpoints, eligibility, precision, administration services, and Postman examples.
+Laravel 12 backend with a product catalog API, discount integration, Sanctum customer authentication, shopping carts, and the original discount calculator. Checkout is planned for Phase 4. See [discount documentation](docs/discounts.md) and [customer authentication and cart documentation](docs/customer-cart.md) for API contracts, Postman examples, authorization, and testing instructions.
 
 Development sample data includes five promotions created by the dedicated `DiscountSampleSeeder`: Electronics Sale (10%), Fashion Promotion (20%), Gaming Voucher (RM50), Home Living Deal (RM30), and VIP Loyalty Discount (85%, excluded from public pricing). See [seeded pricing examples](docs/discounts.md#sample-discounts-and-http-examples) for verified requests and responses. Run only the intended seeder after verifying its database target; existing named promotions and their assignments are preserved on reruns.
 
@@ -42,7 +42,7 @@ All API responses are JSON, including errors without an Accept header. Public re
 | GET | `/api/categories` | Categories, 200 |
 | GET | `/discount` | Unchanged legacy discount calculation |
 
-Product writes are permitted only when APP_ENV is `local` or `testing`. All other environments return 403 for writes. This is a temporary development restriction, not customer/admin authentication. Local/testing writes can update inactive products.
+Product writes require a valid Sanctum Bearer token and a server-managed admin role in every environment. Guests receive 401 and regular customers receive 403. Product reads remain public. Admins can update inactive products. No category or discount administration HTTP routes are exposed.
 
 List query parameters:
 
@@ -169,7 +169,7 @@ Create a Postman environment variable `base_url` with value `http://127.0.0.1:80
 
 Expect HTTP 200 and 36 total visible products before manual changes. A page size of 10 produces four pages. Electronics has nine visible products. `search=laptop` finds two laptops. Inactive sample product `/api/products/10` returns 404 in the initial seeded database; IDs may differ if samples are added to an existing database. Invalid `per_page=101` returns 422. Loyalty returns `{"original":100,"discounted_amount":15}`.
 
-For CRUD testing, use POST `/api/products` with Body → raw → JSON and the creation payload above. Use a new unique SKU such as `MANUAL-001`, and a category ID from GET `/api/categories`. Expect 201, save `data.id`, then use GET and PATCH on that ID. PATCH `{"stock_quantity":5}` should return 200. DELETE that same manually created product should return 204, and a subsequent GET should return 404. This changes only the manual test product. Keep `APP_ENV=local` for writes; other non-testing environments return 403. The API does not yet use authentication.
+For CRUD testing, use an authenticated admin Bearer token and POST `/api/products` with Body → raw → JSON and the creation payload above. Use a new unique SKU such as `MANUAL-001`, and a category ID from GET `/api/categories`. Expect 201, save `data.id`, then use GET and PATCH on that ID. PATCH `{"stock_quantity":5}` should return 200. DELETE that same manually created product should return 204, and a subsequent GET should return 404. This changes only the manual test product. See [customer setup and Postman authentication](docs/customer-cart.md) for token and role instructions.
 
 ## Automated checks
 

@@ -15,11 +15,26 @@ class ProductPricingService
 
     public function eligibleDiscounts(Product $product, ?Authenticatable $customer = null): Collection
     {
-        abort_unless($product->exists && $product->is_active && ! $product->trashed(), 404);
-        $now = CarbonImmutable::now('UTC');
-        $loyal = $customer !== null && $this->loyalty->eligible($customer);
+        return $this->eligibleFor($product, $customer !== null && $this->loyalty->eligible($customer), CarbonImmutable::now('UTC'));
+    }
 
-        return $product->discounts()->orderBy('discounts.id')->get()->filter(function (Discount $discount) use ($product, $now, $loyal) {
+    public function prices(Collection $products, ?Authenticatable $customer = null): Collection
+    {
+        $loyal = $customer !== null && $this->loyalty->eligible($customer);
+        $now = CarbonImmutable::now('UTC');
+
+        return $products->mapWithKeys(fn (Product $product) => [
+            $product->id => $this->priceFromDiscounts($product, $this->eligibleFor($product, $loyal, $now)),
+        ]);
+    }
+
+    private function eligibleFor(Product $product, bool $loyal, CarbonImmutable $now): Collection
+    {
+        abort_unless($product->exists && $product->is_active && ! $product->trashed(), 404);
+
+        $discounts = $product->relationLoaded('discounts') ? $product->discounts->sortBy('id') : $product->discounts()->orderBy('discounts.id')->get();
+
+        return $discounts->filter(function (Discount $discount) use ($product, $now, $loyal) {
             if (! $discount->is_active
                 || ($discount->starts_at && $now->lt($discount->starts_at))
                 || ($discount->expires_at && $now->gte($discount->expires_at))
@@ -38,10 +53,15 @@ class ProductPricingService
 
     public function price(Product $product, ?Authenticatable $customer = null): array
     {
+        return $this->priceFromDiscounts($product, $this->eligibleDiscounts($product, $customer));
+    }
+
+    private function priceFromDiscounts(Product $product, Collection $discounts): array
+    {
         $original = $product->price;
         $final = $original;
         $applied = null;
-        foreach ($this->eligibleDiscounts($product, $customer) as $discount) {
+        foreach ($discounts as $discount) {
             $candidate = $this->finalPrice($product, $discount);
             if (Money::minor($candidate) < Money::minor($final)
                 || ($applied === null && $candidate === $final)) {

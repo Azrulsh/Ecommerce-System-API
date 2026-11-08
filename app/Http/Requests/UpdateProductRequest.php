@@ -6,6 +6,11 @@ use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends StoreProductRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()?->can('update', $this->route('product')) ?? false;
+    }
+
     public function rules(): array
     {
         $rules = parent::rules();

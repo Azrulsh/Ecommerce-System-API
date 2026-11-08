@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -11,6 +12,14 @@ use Tests\TestCase;
 class ProductCatalogTest extends TestCase
 {
     use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $admin = User::factory()->create();
+        $admin->forceFill(['is_admin' => true])->save();
+        $this->actingAs($admin, 'sanctum');
+    }
 
     private function payload(array $overrides = []): array
     {
@@ -169,10 +178,11 @@ class ProductCatalogTest extends TestCase
     }
 
     #[DataProvider('restrictedEnvironments')]
-    public function test_all_write_methods_are_forbidden_outside_local_testing(string $environment): void
+    public function test_regular_customers_are_forbidden_from_writes_in_all_environments(string $environment): void
     {
         $product = Product::factory()->create();
         $this->app->instance('env', $environment);
+        $this->actingAs(User::factory()->create(), 'sanctum');
         $this->postJson('/api/products', [])->assertForbidden();
         $this->putJson('/api/products/'.$product->id, [])->assertForbidden();
         $this->patchJson('/api/products/'.$product->id, [])->assertForbidden();
