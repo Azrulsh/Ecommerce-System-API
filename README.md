@@ -1,6 +1,8 @@
-# E-commerce Discount System — Phase 1
+# E-commerce Discount System
 
-Laravel 12 backend with a product catalog API and the original discount calculator. No authentication, cart, checkout, or discount integration has been added.
+Laravel 12 backend with a product catalog API, product discount integration, and the original discount calculator. Authentication, cart, and checkout are planned for later phases. See [Phase 2 discount documentation](docs/discounts.md) for pricing endpoints, eligibility, precision, administration services, and Postman examples.
+
+Development sample data includes five promotions created by the dedicated `DiscountSampleSeeder`: Electronics Sale (10%), Fashion Promotion (20%), Gaming Voucher (RM50), Home Living Deal (RM30), and VIP Loyalty Discount (85%, excluded from public pricing). See [seeded pricing examples](docs/discounts.md#sample-discounts-and-http-examples) for verified requests and responses. Run only the intended seeder after verifying its database target; existing named promotions and their assignments are preserved on reruns.
 
 ## Database safety
 
